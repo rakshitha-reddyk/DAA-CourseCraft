@@ -1,0 +1,73 @@
+{
+  "completed_courses": ["CS101"],
+  "min_credits": 8,
+  "max_credits": 16,
+  "catalog": [
+    {
+      "id": "CS101",
+      "name": "Intro to Programming",
+      "credits": 4,
+      "prerequisites": [],
+      "difficulty": 2,
+      "slots": [
+        {
+          "slot_id": "CS101_S1",
+          "day": "Mon/Wed",
+          "start_time": 900,
+          "end_time": 1030
+        }
+      ]
+    },
+    {
+      "id": "CS201",
+      "name": "Data Structures",
+      "credits": 4,
+      "prerequisites": ["CS101"],
+      "difficulty": 4,
+      "slots": [
+        {
+          "slot_id": "CS201_S1",
+          "day": "Mon/Wed",
+          "start_time": 1100,
+          "end_time": 1230
+        },
+        {
+          "slot_id": "CS201_S2",
+          "day": "Tue/Thu",
+          "start_time": 900,
+          "end_time": 1030
+        }
+      ]
+    },
+    {
+      "id": "CS202",
+      "name": "Algorithms",
+      "credits": 4,
+      "prerequisites": ["CS201"],
+      "difficulty": 5,
+      "slots": [
+        {
+          "slot_id": "CS202_S1",
+          "day": "Mon/Wed",
+          "start_time": 1400,
+          "end_time": 1530
+        }
+      ]
+    },
+    {
+      "id": "MATH201",
+      "name": "Discrete Math",
+      "credits": 4,
+      "prerequisites": [],
+      "difficulty": 3,
+      "slots": [
+        {
+          "slot_id": "MATH201_S1",
+          "day": "Mon/Wed",
+          "start_time": 1100,
+          "end_time": 1230
+        }
+      ]
+    }
+  ]
+}
