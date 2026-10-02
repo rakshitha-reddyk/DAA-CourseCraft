@@ -3,11 +3,31 @@ Student Course Selection Optimizer Engine
 DAA Hackathon Implementation: DAG Prerequisite Filtering + CSP Backtracking
 """
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+import os
+from pathlib import Path
 from typing import List
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
+# Initialize single FastAPI App instance
 app = FastAPI(title="CourseCraft Optimizer Engine")
+
+# --- PATH RESOLUTION & FRONTEND SETUP ---
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+@app.get("/", response_class=FileResponse)
+def serve_ui():
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    return {"error": f"index.html not found at {index_path}"}
+
 
 # --- DATA MODELS ---
 class TimeSlot(BaseModel):
@@ -30,6 +50,7 @@ class OptimizationRequest(BaseModel):
     max_credits: int
     catalog: List[Course]
 
+
 # --- DAA HELPER FUNCTIONS ---
 def check_overlap(slot1: TimeSlot, slot2: TimeSlot) -> bool:
     """Checks if two time slots overlap on the same day."""
@@ -49,6 +70,7 @@ def filter_eligible_courses(catalog: List[Course], completed: List[str]) -> List
         if all(prereq in completed_set for prereq in course.prerequisites):
             eligible.append(course)
     return eligible
+
 
 # --- API ENDPOINT ---
 @app.post("/api/optimize")

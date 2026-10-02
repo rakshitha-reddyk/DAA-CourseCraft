@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CourseCraft | Student Course Optimizer</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 24px;
+      }
+      .layout {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 24px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 4px 0;
+        color: var(--text);
+      }
+      p.subtitle {
+        margin: 0 0 20px 0;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: block;
+        margin-bottom: 8px;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      input[type="range"] {
+        flex: 1;
+      }
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 160px;
+        overflow-y: auto;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+      }
+      button {
+        width: 100%;
+        padding: 10px 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: var(--primary-hover);
+      }
+      .meta-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+        font-size: 0.875rem;
+      }
+      .badge {
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+
+      /* Timetable Grid */
+      .timetable {
+        display: grid;
+        grid-template-columns: 80px repeat(5, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .timetable-header,
+      .timetable-cell {
+        background: #fff;
+        padding: 10px;
+        text-align: center;
+        font-size: 0.8125rem;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .timetable-header {
+        font-weight: 700;
+        background: #f1f5f9;
+        color: var(--muted);
+      }
+      .time-col {
+        font-weight: 600;
+        color: var(--muted);
+        background: #f8fafc;
+      }
+      .slot-card {
+        background: #e0f2fe;
+        border-left: 3px solid #0284c7;
+        color: #0369a1;
+        padding: 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        width: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="max-width: 1200px; margin: 0 auto 16px auto">
+      <h1>🎓 CourseCraft Engine</h1>
+      <p class="subtitle">
+        DAG Prerequisite Filtering & CSP Backtracking Timetable Solver
+      </p>
+    </div>
+
+    <div class="layout">
+      <!-- Left Panel: Student Controls -->
+      <div class="card">
+        <div class="form-group">
+          <label>1. Completed Courses</label>
+          <div class="checkbox-group" id="completedList">
+            <label class="checkbox-item"
+              ><input type="checkbox" value="CS101" checked /> CS101 (Intro
+              CS)</label
+            >
+            <label class="checkbox-item"
+              ><input type="checkbox" value="CS201" /> CS201 (Data
+              Structures)</label
+            >
+            <label class="checkbox-item"
+              ><input type="checkbox" value="MATH201" /> MATH201 (Discrete
+              Math)</label
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>2. Credit Bound Constraints</label>
+          <div class="slider-container">
+            <span style="font-size: 0.875rem">Min: <b id="minVal">8</b></span>
+            <input
+              type="range"
+              id="minCredits"
+              min="0"
+              max="20"
+              value="8"
+              oninput="document.getElementById('minVal').innerText = this.value"
+            />
+          </div>
+          <div class="slider-container" style="margin-top: 8px">
+            <span style="font-size: 0.875rem">Max: <b id="maxVal">16</b></span>
+            <input
+              type="range"
+              id="maxCredits"
+              min="0"
+              max="24"
+              value="16"
+              oninput="document.getElementById('maxVal').innerText = this.value"
+            />
+          </div>
+        </div>
+
+        <button onclick="generateSchedule()">Generate Best Schedule</button>
+      </div>
+
+      <!-- Right Panel: Visual Timetable Output -->
+      <div>
+        <div class="card">
+          <div class="meta-bar" id="statsBar">
+            <span class="badge" id="eligibleBadge">Eligible Courses: -</span>
+            <span class="badge" id="optionsBadge">Valid Options: -</span>
+          </div>
+
+          <div class="timetable" id="timetableGrid">
+            <!-- Header -->
+            <div class="timetable-header">Time</div>
+            <div class="timetable-header">Mon</div>
+            <div class="timetable-header">Tue</div>
+            <div class="timetable-header">Wed</div>
+            <div class="timetable-header">Thu</div>
+            <div class="timetable-header">Fri</div>
+
+            <!-- Time Rows -->
+            <div class="timetable-cell time-col">09:00 - 10:30</div>
+            <div class="timetable-cell" id="slot-Mon-900"></div>
+            <div class="timetable-cell" id="slot-Tue-900"></div>
+            <div class="timetable-cell" id="slot-Wed-900"></div>
+            <div class="timetable-cell" id="slot-Thu-900"></div>
+            <div class="timetable-cell" id="slot-Fri-900"></div>
+
+            <div class="timetable-cell time-col">11:00 - 12:30</div>
+            <div class="timetable-cell" id="slot-Mon-1100"></div>
+            <div class="timetable-cell" id="slot-Tue-1100"></div>
+            <div class="timetable-cell" id="slot-Wed-1100"></div>
+            <div class="timetable-cell" id="slot-Thu-1100"></div>
+            <div class="timetable-cell" id="slot-Fri-1100"></div>
+
+            <div class="timetable-cell time-col">14:00 - 15:30</div>
+            <div class="timetable-cell" id="slot-Mon-1400"></div>
+            <div class="timetable-cell" id="slot-Tue-1400"></div>
+            <div class="timetable-cell" id="slot-Wed-1400"></div>
+            <div class="timetable-cell" id="slot-Thu-1400"></div>
+            <div class="timetable-cell" id="slot-Fri-1400"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const fullCatalog = [
+        {
+          id: "CS101",
+          name: "Intro CS",
+          credits: 4,
+          prerequisites: [],
+          difficulty: 2,
+          slots: [
+            {
+              slot_id: "CS101_S1",
+              day: "Mon/Wed",
+              start_time: 900,
+              end_time: 1030,
+            },
+          ],
+        },
+        {
+          id: "CS201",
+          name: "Data Structures",
+          credits: 4,
+          prerequisites: ["CS101"],
+          difficulty: 4,
+          slots: [
+            {
+              slot_id: "CS201_S1",
+              day: "Mon/Wed",
+              start_time: 1100,
+              end_time: 1230,
+            },
+            {
+              slot_id: "CS201_S2",
+              day: "Tue/Thu",
+              start_time: 900,
+              end_time: 1030,
+            },
+          ],
+        },
+        {
+          id: "CS202",
+          name: "Algorithms",
+          credits: 4,
+          prerequisites: ["CS201"],
+          difficulty: 5,
+          slots: [
+            {
+              slot_id: "CS202_S1",
+              day: "Mon/Wed",
+              start_time: 1400,
+              end_time: 1530,
+            },
+          ],
+        },
+        {
+          id: "MATH201",
+          name: "Discrete Math",
+          credits: 4,
+          prerequisites: [],
+          difficulty: 3,
+          slots: [
+            {
+              slot_id: "MATH201_S1",
+              day: "Mon/Wed",
+              start_time: 1100,
+              end_time: 1230,
+            },
+          ],
+        },
+      ];
+
+      async function generateSchedule() {
+        // Clear current timetable view
+        document
+          .querySelectorAll(
+            ".timetable-cell:not(.time-col):not(.timetable-header)",
+          )
+          .forEach((c) => (c.innerHTML = ""));
+
+        // Gather input choices
+        const checkedBoxes = Array.from(
+          document.querySelectorAll("#completedList input:checked"),
+        ).map((cb) => cb.value);
+        const minCredits = parseInt(
+          document.getElementById("minCredits").value,
+        );
+        const maxCredits = parseInt(
+          document.getElementById("maxCredits").value,
+        );
+
+        const payload = {
+          completed_courses: checkedBoxes,
+          min_credits: minCredits,
+          max_credits: maxCredits,
+          catalog: fullCatalog,
+        };
+
+        const res = await fetch("/api/optimize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (data.status !== "SUCCESS") {
+          alert(data.message || "No valid schedule found!");
+          return;
+        }
+
+        document.getElementById("eligibleBadge").innerText =
+          `Eligible Courses: ${data.eligible_count}`;
+        document.getElementById("optionsBadge").innerText =
+          `Valid Options: ${data.total_valid_options}`;
+
+        // Take the top recommended schedule option
+        const bestSchedule = data.schedules[0];
+
+        // Populate grid
+        bestSchedule.slots.forEach((slotId) => {
+          // Map slotId back to details
+          fullCatalog.forEach((course) => {
+            course.slots.forEach((s) => {
+              if (s.slot_id === slotId) {
+                const days = s.day.split("/"); // e.g., ["Mon", "Wed"]
+                days.forEach((day) => {
+                  const cellId = `slot-${day}-${s.start_time}`;
+                  const cell = document.getElementById(cellId);
+                  if (cell) {
+                    cell.innerHTML = `<div class="slot-card">${course.id}<br><small>${s.slot_id}</small></div>`;
+                  }
+                });
+              }
+            });
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
